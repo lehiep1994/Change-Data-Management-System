@@ -1,43 +1,52 @@
 @startuml FE_CDMS
 !theme plain
 skinparam componentStyle rectangle
-skinparam linetype ortho
-skinparam nodesep 30
-skinparam ranksep 40
+skinparam nodesep 60
+skinparam ranksep 100
+skinparam DefaultTextAlignment center
 
-package "Frontend For CDMS" {
+package "CDMS FrontEnd Services" {
     component "Web Router (Entry Point)" as Router
     
-    package "Tenant & System Configuration" {
-        component "Tenant Session Auth" as Auth
-        component "Data Source Config\n(Vietful Messaging, Shopify API)" as SourceConfig
-        component "Worker Scheduling\n(Push/Pull Setup)" as Schedule
+    package "Tenant & System Configuration" as ConfigPkg {
+        component "Tenant Session" as Auth
+        component "Data Source" as DataSource
+        component "Worker Scheduling" as Schedule
+        
+        Auth -[hidden]right- DataSource
+        DataSource -[hidden]right- Schedule
     }
     
-    package "Monitoring & Operations" {
-        component "Worker Control Panel\n(Start / Stop Workers)" as WorkerControl
-        component "Active Worker Tracker\n(Running, Deployed, Configured)" as WorkerTracker
-        component "Performance Metrics\n(Throughput, Latency, Wrong Data)" as Metrics
+    package "Monitoring & Operations" as OpsPkg {
+        component "Worker Control" as WorkerControl
+        component "Worker Status" as WorkerStatus
+        component "Performance Metrics\n(Throughput/Latency)" as Metrics
+        
+        WorkerControl -[hidden]right- WorkerStatus
+        WorkerStatus -[hidden]right- Metrics
     }
+    
+    ConfigPkg -[hidden]right- OpsPkg
     
     component "API Gateway Client\n(Axios/Fetch)" as ApiClient
 }
 
 component "CDMS Backend Services" as Backend
 
-Router -down-> Auth
-Router -down-> SourceConfig
-Router -down-> Schedule
-Router -down-> WorkerControl
-Router -down-> WorkerTracker
-Router -down-> Metrics
+Router          ---> Auth           : Tenant\n Authentication
+Router          ---> DataSource     : Access to data source\n Vietful/Shopify
+Router          ---> Schedule       : Push/Pull
+Router          ---> WorkerControl  : Start/Stop
+Router          ---> WorkerStatus   : Run/Deployed/Configured
+Router          ---> Metrics        : Statistics
 
-Auth -down-> ApiClient
-SourceConfig -down-> ApiClient
-Schedule -down-> ApiClient
-WorkerControl -down-> ApiClient
-WorkerTracker -down-> ApiClient
-Metrics -down-> ApiClient
+Auth            ---> ApiClient  : Validate Token
+DataSource      ---> ApiClient  : Save Source Config
+Schedule        ---> ApiClient  : Submit Push/Pull
+WorkerControl   ---> ApiClient  : Send Start/Stop
+WorkerStatus    ---> ApiClient  : Fetch Active Status
+Metrics         ---> ApiClient  : Fetch Stats
 
-ApiClient <-down-> Backend : JSON/REST
+' 3. Tương tác với hệ thống Backend
+ApiClient <--> Backend : JSON/REST
 @enduml
