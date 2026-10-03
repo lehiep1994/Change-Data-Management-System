@@ -1,0 +1,43 @@
+@startuml FE_CDMS
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+
+package "Frontend For CDMS" {
+    component "Web Router (Entry Point)" as Router
+    
+    package "Tenant & System Configuration" {
+        component "Tenant Session Auth" as Auth
+        component "Data Source Config\n(Vietful Messaging, Shopify API)" as SourceConfig
+        component "Worker Scheduling\n(Push/Pull Setup)" as Schedule
+    }
+    
+    package "Monitoring & Operations" {
+        component "Worker Control Panel\n(Start / Stop Workers)" as WorkerControl
+        component "Active Worker Tracker\n(Running, Deployed, Configured)" as WorkerTracker
+        component "Performance Metrics\n(Throughput, Latency, Wrong Data)" as Metrics
+    }
+    
+    component "API Gateway Client\n(Axios/Fetch)" as ApiClient
+}
+
+component "CDMS Backend Services" as Backend
+
+Router -down-> Auth
+Router -down-> SourceConfig
+Router -down-> Schedule
+Router -down-> WorkerControl
+Router -down-> WorkerTracker
+Router -down-> Metrics
+
+Auth -down-> ApiClient
+SourceConfig -down-> ApiClient
+Schedule -down-> ApiClient
+WorkerControl -down-> ApiClient
+WorkerTracker -down-> ApiClient
+Metrics -down-> ApiClient
+
+ApiClient <-down-> Backend : JSON/REST
+@enduml
