@@ -39,7 +39,7 @@ flowchart TD
     %% Interaction with Backend System
     ApiClient <-->|"JSON/REST"| Backend
     
-    %% Custom styling for packages
-    classDef packageStyle fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
+    %% Custom styling for packages - Sửa lỗi Dark Mode bằng fill:none
+    classDef packageStyle fill:none,stroke:#888,stroke-width:2px,stroke-dasharray: 5 5;
     class ConfigPkg,OpsPkg packageStyle;
 ```
