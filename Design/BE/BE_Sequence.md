@@ -2,24 +2,24 @@
 sequenceDiagram
     participant FE as FE (API Gateway Client)
     
-    box rgba(100, 150, 255, 0.15) Core Management Module
+    box rgba(100,150,255,0.15) Core Management Module
         participant API as API Gateway & Controller
         participant WManager as Worker Manager
         participant Metrics as Telemetry & Metrics
     end
     
-    box rgba(150, 255, 150, 0.15) Sync Engine & Workers
+    box rgba(150,255,150,0.15) Sync Engine & Workers
         participant VWorker as Vietful Sync Worker
         participant SWorker as Shopify Sync Worker
         participant Dedup as Deduplication Validator
     end
     
-    box rgba(255, 200, 100, 0.15) Integration Connectors
+    box rgba(255,200,100,0.15) Integration Connectors
         participant VConn as Vietful Connector
         participant SConn as Shopify Connector
     end
     
-    box rgba(200, 100, 255, 0.15) Data Access Layer (DAL)
+    box rgba(200,100,255,0.15) Data Access Layer - DAL
         participant DB as DBManager (ORM/Query Builder)
     end
     
