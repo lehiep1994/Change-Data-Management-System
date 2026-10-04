@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cdms_postgres
+    environment:
+      POSTGRES_DB: cdms_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./Database:/docker-entrypoint-initdb.d
+
+  backend:
+    build: 
+      context: ./Src
+      dockerfile: Dockerfile.be
+    container_name: cdms_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cdms_db
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+  frontend:
+    build: 
+      context: ./Src
+      dockerfile: Dockerfile.fe
+    container_name: cdms_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - PYTHON_BE_URL=http://backend:8000
+    depends_on:
+      - backend
