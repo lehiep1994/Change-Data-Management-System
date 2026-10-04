@@ -41,6 +41,6 @@ Hệ thống quản lý dữ liệu thay đổi (CDMS) hỗ trợ đồng bộ h
 
 ### 2) Triển khai bằng docker:
    Tạo file *"docker-compose.yaml"*
-   Chạy lệnh sau:
+   và chạy lệnh sau:
    ```bash
    docker-compose up --build
