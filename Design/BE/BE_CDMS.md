@@ -61,7 +61,7 @@ flowchart TD
     DBManager -->|"Upsert Unique Product Info"| MasterDB
     DBManager -->|"Upsert Tenant Inventory"| TenantDB
     
-    %% Tùy chỉnh màu sắc nét đứt cho các package con giống PlantUML
-    classDef packageStyle fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
+    %% [ĐÃ SỬA LỖI DARK MODE] Dùng nền trong suốt (none) và viền xám (#888)
+    classDef packageStyle fill:none,stroke:#888,stroke-width:2px,stroke-dasharray: 5 5;
     class Management,Workers,Connectors,DAL packageStyle;
 ```
