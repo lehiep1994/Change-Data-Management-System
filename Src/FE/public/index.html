@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDMS FrontEnd Services</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px dashed #888;
+        }
+
+        .panel h2 {
+            color: #61dafb;
+            font-size: 1.2rem;
+            margin-top: 0;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .btn-stop {
+            background: #f44336;
+        }
+
+        .btn-stop:hover {
+            background: #d32f2f;
+        }
+
+        #console {
+            margin-top: 20px;
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            font-family: monospace;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-time {
+            color: #888;
+        }
+
+        .log-url {
+            color: #ffeb3b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>⚙️ CDMS Web Router</h1>
+
+    <div class="container">
+        <!-- Nhóm 1: Tenant & System Configuration -->
+        <div class="panel">
+            <h2>Tenant & System Configuration</h2>
+            <p>Static configurations and setups.</p>
+            <button onclick="callAPI('POST', '/api/auth/validate')">1. Tenant Authentication (Login)</button>
+            <button onclick="callAPI('POST', '/api/tenant/datasource', { source: 'Vietful' })">2. Configure Data Source
+                (Vietful)</button>
+            <button onclick="callAPI('POST', '/api/tenant/schedule', { mode: 'Pull' })">3. Worker Scheduling
+                (Push/Pull)</button>
+        </div>
+
+        <!-- Nhóm 2: Monitoring & Operations -->
+        <div class="panel" style="border-color: #ff9800;">
+            <h2 style="color: #ff9800;">Monitoring & Operations</h2>
+            <p>Runtime controls and telemetry.</p>
+            <button onclick="callAPI('POST', '/api/worker/control', { action: 'start' })">▶ Start Worker</button>
+            <button class="btn-stop" onclick="callAPI('POST', '/api/worker/control', { action: 'stop' })">■ Stop
+                Worker</button>
+            <button onclick="callAPI('GET', '/api/worker/status')">📊 Fetch Active Status</button>
+            <button onclick="callAPI('GET', '/api/worker/metrics')">📈 Fetch Performance Metrics</button>
+        </div>
+    </div>
+
+    <!-- Màn hình hiển thị kết quả -->
+    <div id="console">
+        <div><span class="log-time">System Ready. Waiting for actions...</span></div>
+    </div>
+
+    <script>
+        // Đây chính là [API Gateway Client] dùng Fetch API tích hợp sẵn của Javascript
+        async function callAPI(method, endpoint, bodyData = null) {
+            const consoleBox = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+
+            // In log thao tác người dùng
+            consoleBox.innerHTML += `<div><span class="log-time">[${time}]</span> Sending ${method} request to <span class="log-url">${endpoint}</span>...</div>`;
+
+            try {
+                // Chuẩn bị gói hàng (request)
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (bodyData) {
+                    options.body = JSON.stringify(bodyData);
+                }
+
+                // Gửi request tới server và chờ phản hồi
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+
+                // In log kết quả trả về
+                consoleBox.innerHTML += `<div><span class="log-time">[${time}]</span> ✅ <span style="color: #fff;">${JSON.stringify(data, null, 2)}</span></div><br>`;
+            } catch (error) {
+                // Xử lý lỗi nếu server chết hoặc sập mạng
+                consoleBox.innerHTML += `<div><span class="log-time">[${time}]</span> ❌ <span style="color: #f44336;">Error: ${error.message}</span></div><br>`;
+            }
+
+            // Tự động cuộn console xuống dòng mới nhất
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>
