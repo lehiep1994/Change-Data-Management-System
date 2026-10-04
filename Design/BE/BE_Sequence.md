@@ -38,7 +38,7 @@ sequenceDiagram
         WManager-->>API: Command Executed Successfully
         API-->>FE: 200 OK (Workers Updated)
     else Failure
-        WManager-->>API: Execution Error (e.g., Invalid Checkpoint)
+        WManager-->>API: Execution Error
         API-->>FE: 400 Bad Request / 500 Error
     end
 
@@ -50,15 +50,17 @@ sequenceDiagram
     Dedup->>DB: Validated Data (Check Duplicates)
     
     alt Validation & Save Success
-        DB->>MasterDB: Upsert Unique Product Info
-        DB->>TenantDB: Upsert Tenant Inventory
+        DB->>MasterDB: Upsert Unique Product Info (Global)
+        DB->>TenantDB: Upsert into Tenant-Specific Table
         DB-->>Dedup: Save Complete
         Dedup-->>VWorker: Processing Successful
+        
+        VWorker->>WManager: Update Last Checkpoint 
         VWorker->>Metrics: Report Sync Performance (Latency/Throughput)
         VWorker-->>VConn: Acknowledge (ACK) to Queue
     else Validation or DB Failure
         DB-->>Dedup: DB Transaction Failed
-        Dedup-->>VWorker: Validation Error / Duplicated
+        Dedup-->>VWorker: Validation Error / Duplicated / Wrong Data
         VWorker->>Metrics: Report Sync Errors
         VWorker-->>VConn: Negative Acknowledge (NACK)
     end
@@ -73,18 +75,32 @@ sequenceDiagram
     Dedup->>DB: Validated Data (Check Duplicates)
     
     alt Validation & Save Success
-        DB->>MasterDB: Upsert Unique Product Info
-        DB->>TenantDB: Upsert Tenant Inventory
+        DB->>MasterDB: Upsert Unique Product Info (Global)
+        DB->>TenantDB: Upsert into Tenant-Specific Table
         DB-->>Dedup: Save Complete
         Dedup-->>SWorker: Processing Successful
+        
+        SWorker->>WManager: Update Last Checkpoint
         SWorker->>Metrics: Report Sync Performance (Latency/Throughput)
     else Validation or DB Failure
         DB-->>Dedup: DB Transaction Failed
-        Dedup-->>SWorker: Validation Error / Duplicated
+        Dedup-->>SWorker: Validation Error / Duplicated / Wrong Data
         SWorker->>Metrics: Report Sync Errors
     end
 
-    %% 4. Metrics Fetching Flow
+    %% 4. Worker Status Fetching Flow [BỔ SUNG]
+    FE->>API: GET /api/v1/workers/status (JSON/REST)
+    API->>WManager: Fetch Active Status
+    
+    alt Success
+        WManager-->>API: Return counts (Running/Deployed/Configured)
+        API-->>FE: 200 OK (Worker Status Data)
+    else Failure
+        WManager-->>API: Internal Error
+        API-->>FE: 500 Internal Server Error
+    end
+
+    %% 5. Metrics Fetching Flow
     FE->>API: GET /api/v1/metrics (JSON/REST)
     API->>Metrics: Fetch Stats
     

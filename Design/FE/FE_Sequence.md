@@ -3,14 +3,12 @@ sequenceDiagram
     actor Tenant as Tenant (User)
     participant Router as Web Router (Entry Point)
     
-    %% Đổi sang rgba với độ trong suốt 0.15 để tương thích Dark/Light mode
     box rgba(100, 150, 255, 0.15) Tenant & System Configuration
         participant Auth as Tenant Session
         participant DS as Data Source
         participant Sched as Worker Scheduling
     end
     
-    %% Đổi sang rgba với độ trong suốt 0.15
     box rgba(255, 150, 100, 0.15) Monitoring & Operations
         participant WCtrl as Worker Control
         participant WStat as Worker Status

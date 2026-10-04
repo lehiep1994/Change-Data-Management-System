@@ -20,7 +20,7 @@ flowchart TD
 
     Backend["CDMS Backend Services"]
 
-    %% Tương tác từ Router
+    %% Interactions from Router
     Router -->|"Tenant<br>Authentication"| Auth
     Router -->|"Access to data source<br>Vietful/Shopify"| DataSource
     Router -->|"Push/Pull"| Schedule
@@ -28,7 +28,7 @@ flowchart TD
     Router -->|"Run/Deployed/Configured"| WorkerStatus
     Router -->|"Statistics"| Metrics
 
-    %% Tương tác tới ApiClient
+    %% Interactions to ApiClient
     Auth -->|"Validate Token"| ApiClient
     DataSource -->|"Save Source Config"| ApiClient
     Schedule -->|"Submit Push/Pull"| ApiClient
@@ -36,10 +36,10 @@ flowchart TD
     WorkerStatus -->|"Fetch Active Status"| ApiClient
     Metrics -->|"Fetch Stats"| ApiClient
 
-    %% Tương tác với hệ thống Backend
+    %% Interaction with Backend System
     ApiClient <-->|"JSON/REST"| Backend
     
-    %% Tùy chỉnh màu sắc để phân biệt (Tùy chọn)
+    %% Custom styling for packages
     classDef packageStyle fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5;
     class ConfigPkg,OpsPkg packageStyle;
 ```
