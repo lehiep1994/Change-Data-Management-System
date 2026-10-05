@@ -88,7 +88,7 @@ class VietfulPayload(BaseModel):
 
 @app.post("/api/auth/validate")
 def validate_token():
-    return {"status": "success", "message": "[Python BE] Token valid."}
+    return {"status": "success", "message": "Token valid."}
 
 @app.post("/api/tenant/datasource")
 def config_datasource(req: DataSourceReq):
