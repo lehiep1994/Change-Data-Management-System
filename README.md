@@ -14,49 +14,56 @@ Với hệ cơ sở dữ liệu đang dùng là postgreSQL.
 * **Backend (FastAPI):** 
   * Thực thi câu lệnh dưới:
   ```bash
-  cd Src/BE
-  python -m venv venv
-  venv\Scripts\Activate
-  pip install fastapi uvicorn psycopg2-binary pydantic
-  uvicorn main:app --reload --port 8000
+  "cd Src/BE"
+  "python -m venv venv"
+  "venv\Scripts\Activate"
+  "pip install fastapi uvicorn psycopg2-binary pydantic"
+  "uvicorn main:app --reload --port 8000"
   ```
 * **Frontend:**
   * Thực thi câu lệnh dưới:
   ```bash
-  cd Src/FE
-  npm install
-  node server.js
+  "cd Src/FE"
+  "npm install"
+  "node server.js"
   ```
 * **Testing FE:**
   * Thực thi câu lệnh sau rồi mới chỉnh nội dung trong file "package.json"
   ```bash
-  npm install --save-dev jest supertest
+  "npm install --save-dev jest supertest"
   ```
   * Nội dung trong file "package.json":
   *"test": "jest --rootDir ../.. --moduleDirectories Src/FE/node_modules Test/FE/fe.test.js*"
   * Tiến hành kiểm thử cho FE. 
   ```bash
-  cd Test/FE
-  npm test
+  "cd Test/FE"
+  "npm test"
   ```
 * **Testing BE:**
   * Môi trường ảo *"venv"* và sau đó cài đặt những gói sau:
-  *"pip install pytest httpx"*
+  ```bash
+  "pip install pytest httpx"
+  ```
 
   * Dùng câu lệnh sau:
-   *"pytest Test/BE/Test_BE.py -v"*
+  ```bash
+  "pytest Test/BE/Test_BE.py -v"
+  ``` 
 * **Testing DB:**
   * Tương tự như với BE thì dùng câu lệnh sau:
-   *"pytest Test/BE/Test_DB.py -v"*
+  ```bash
+  "pytest Test/BE/Test_DB.py -v"
+  ```
 
 ### 2) Triển khai bằng docker:
 * **Init DB:**
   * Dùng câu lệnh để khởi tạo DB trước khi chạy docker compose:
   ```bash
-  .\Script_Init_DB\DB_init.ps1
+  ".\Script_Init_DB\DB_init.ps1"
   ```
+  NOTE: nếu không / quên chạy script trên thì sẽ báo lỗi kết nối tới DB.
 * **Docker command:**
   * Chạy lệnh sau (với file trong thư mục docker):
-   ```bash
-   docker-compose up --build
-   ```
+  ```bash
+  "docker compose -f .\Docker\docker-compose.yml up --build"
+  ```
