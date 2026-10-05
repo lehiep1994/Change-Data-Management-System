@@ -4,7 +4,9 @@ const axios = require('axios'); // Thư viện để gọi sang Python
 
 const app = express();
 const PORT = 3000;
-const PYTHON_BE_URL = 'http://localhost:8000'; // Địa chỉ của Backend Python
+
+// SỬA TẠI ĐÂY: Ưu tiên lấy cấu hình từ Docker, nếu không có (chạy thủ công) thì dùng localhost
+const PYTHON_BE_URL = process.env.PYTHON_BE_URL || 'http://localhost:8000';
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -25,7 +27,7 @@ async function forwardToBackend(req, res, method, endpoint) {
         // Trả kết quả từ Python về cho trình duyệt
         res.status(response.status).json(response.data);
     } catch (error) {
-        console.error("Lỗi gọi Backend:", error.message);
+        console.error(`Lỗi gọi Backend (${url}):`, error.message);
         res.status(500).json({ status: 'error', message: 'Không thể kết nối đến Python Backend' });
     }
 }
@@ -41,4 +43,5 @@ app.get('/api/worker/metrics', (req, res) => forwardToBackend(req, res, 'GET', '
 
 app.listen(PORT, () => {
     console.log(`[API Gateway] CDMS FrontEnd đang chạy tại http://localhost:${PORT}`);
+    console.log(`[API Gateway] Đang trỏ Backend về địa chỉ: ${PYTHON_BE_URL}`);
 });

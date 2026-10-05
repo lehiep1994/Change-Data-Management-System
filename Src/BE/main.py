@@ -1,3 +1,7 @@
+import time
+import psycopg2
+import os
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import psycopg2
@@ -6,12 +10,13 @@ from datetime import datetime
 
 app = FastAPI(title="CDMS Backend Services (Full Architecture)")
 
+# Thay thế toàn bộ khối DB_CONFIG cũ bằng khối này:
 DB_CONFIG = {
-    "dbname": "cdms_db",
-    "user": "postgres",
-    "password": "root", # Đổi lại mật khẩu pgAdmin của bạn
-    "host": "localhost",
-    "port": "5432"
+    "dbname": os.getenv("DB_NAME", "cdms_db"),
+    "user": os.getenv("DB_USER", "postgres"),
+    "password": os.getenv("DB_PASSWORD", "root"), 
+    "host": os.getenv("DB_HOST", "db"), # Lấy tên service 'db' từ docker-compose
+    "port": os.getenv("DB_PORT", "5432")
 }
 
 # ==========================================

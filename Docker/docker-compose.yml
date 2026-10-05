@@ -15,8 +15,8 @@ services:
 
   backend:
     build: 
-      context: ./Src
-      dockerfile: Dockerfile.be
+      context: ../Src/BE
+      dockerfile: Dockerfile
     container_name: cdms_backend
     ports:
       - "8000:8000"
@@ -31,8 +31,8 @@ services:
 
   frontend:
     build: 
-      context: ./Src
-      dockerfile: Dockerfile.fe
+      context: ../Src/FE
+      dockerfile: Dockerfile
     container_name: cdms_frontend
     ports:
       - "3000:3000"
