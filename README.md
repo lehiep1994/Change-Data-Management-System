@@ -11,6 +11,7 @@ Với hệ cơ sở dữ liệu đang dùng là postgreSQL.
 * **Database (PostgreSQL):** 
   * Cài đặt và cấu hình cơ sở dữ liệu trên pgAdmin 4 với tên database là `cdms_db`.
   * Mở Query Tool và chạy tập lệnh SQL khởi tạo các bảng từ file `Database/CDMS.sql`.
+
 * **Backend (FastAPI):** 
   * Thực thi câu lệnh dưới:
   ```bash
@@ -20,6 +21,7 @@ Với hệ cơ sở dữ liệu đang dùng là postgreSQL.
   "pip install fastapi uvicorn psycopg2-binary pydantic"
   "uvicorn main:app --reload --port 8000"
   ```
+
 * **Frontend:**
   * Thực thi câu lệnh dưới:
   ```bash
@@ -27,28 +29,30 @@ Với hệ cơ sở dữ liệu đang dùng là postgreSQL.
   "npm install"
   "node server.js"
   ```
+
 * **Testing FE:**
   * Thực thi câu lệnh sau rồi mới chỉnh nội dung trong file "package.json"
   ```bash
   "npm install --save-dev jest supertest"
   ```
   * Nội dung trong file "package.json":
-  *"test": "jest --rootDir ../.. --moduleDirectories Src/FE/node_modules Test/FE/fe.test.js*"
+  "test": "jest --rootDir ../.. --moduleDirectories Src/FE/node_modules Test/FE/fe.test.js*"
   * Tiến hành kiểm thử cho FE. 
   ```bash
   "cd Test/FE"
   "npm test"
   ```
+
 * **Testing BE:**
   * Môi trường ảo *"venv"* và sau đó cài đặt những gói sau:
   ```bash
   "pip install pytest httpx"
   ```
-
   * Dùng câu lệnh sau:
   ```bash
   "pytest Test/BE/Test_BE.py -v"
   ``` 
+
 * **Testing DB:**
   * Tương tự như với BE thì dùng câu lệnh sau:
   ```bash
@@ -63,7 +67,7 @@ Với hệ cơ sở dữ liệu đang dùng là postgreSQL.
   ```
   NOTE: nếu không / quên chạy script trên thì sẽ báo lỗi kết nối tới DB.
 * **Docker command:**
-  * Chạy lệnh sau (với file trong thư mục docker):
+  * Chạy lệnh sau:
   ```bash
   "docker compose -f .\Docker\docker-compose.yml up --build"
   ```
