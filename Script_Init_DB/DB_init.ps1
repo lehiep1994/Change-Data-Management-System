@@ -1,0 +1,1 @@
+Get-Content Src\Database\CDMS.sql | docker exec -i cdms_postgres psql -U postgres -d cdms_db
