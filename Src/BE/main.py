@@ -4,18 +4,16 @@ import os
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-import psycopg2
-import time
 from datetime import datetime
 
 app = FastAPI(title="CDMS Backend Services (Full Architecture)")
 
-# Thay thế toàn bộ khối DB_CONFIG cũ bằng khối này:
+# Lấy cấu hình DB từ Docker Compose
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME", "cdms_db"),
     "user": os.getenv("DB_USER", "postgres"),
     "password": os.getenv("DB_PASSWORD", "root"), 
-    "host": os.getenv("DB_HOST", "db"), # Lấy tên service 'db' từ docker-compose
+    "host": os.getenv("DB_HOST", "db"),
     "port": os.getenv("DB_PORT", "5432")
 }
 
@@ -23,19 +21,16 @@ DB_CONFIG = {
 # 1. DATA ACCESS LAYER & DEDUPLICATION (DAL)
 # ==========================================
 def save_with_deduplication(tenant_id: str, code: str, info: str, qty: int):
-    """
-    Thực hiện chống trùng lặp (Deduplication) và lưu vào Single Database.
-    """
     conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
     try:
-        # Master DB: ON CONFLICT DO NOTHING đảm bảo không bao giờ trùng lặp dữ liệu[cite: 17]
+        # Master DB: Chống trùng lặp thông tin chung
         cursor.execute("""
             INSERT INTO master_product_database (product_code, basic_information)
             VALUES (%s, %s) ON CONFLICT (product_code) DO NOTHING;
         """, (code, info))
 
-        # Tenant Table: Tách biệt hoàn toàn bảng của các tenant[cite: 17]
+        # Tenant Table: Tách biệt dữ liệu Tenant
         table_name = "tenant_a_data" if tenant_id == "Tenant_A" else "tenant_b_data"
         cursor.execute(f"""
             INSERT INTO {table_name} (product_code, inventory_qty)
@@ -52,27 +47,35 @@ def save_with_deduplication(tenant_id: str, code: str, info: str, qty: int):
         conn.close()
 
 # ==========================================
-# 2. CONNECTORS & WORKERS (Vietful Push & Shopify Pull)
+# 2. CONNECTORS & WORKERS
 # ==========================================
 class VietfulConnector:
-    """Connector kết nối với Messaging System của Vietful[cite: 17]"""
+    """Connector kết nối với Messaging System của Vietful theo cấu hình của Tenant"""
+    def __init__(self, broker_url: str, topic_name: str):
+        self.broker_url = broker_url
+        self.topic_name = topic_name
+        # (Mock) Giả lập việc subscribe vào hệ thống queue của Vietful
+        print(f"Subscribed to Vietful Messaging at {self.broker_url}, Topic: {self.topic_name}")
+
     def consume_message(self, raw_data: dict):
         return raw_data
 
 class ShopifyConnector:
-    """Connector chủ động Query dữ liệu từ Shopify API[cite: 17]"""
+    """Connector chủ động Query dữ liệu từ Shopify API"""
     def query_api(self, tenant_id: str):
-        # Mô phỏng dữ liệu lấy từ Shopify
         return [{"code": "SHP_101", "name": "Shopify Jacket", "qty": 40}]
 
 # ==========================================
-# 3. FASTAPI ENDPOINTS (Tương thích với FE & Quản lý Worker)
+# 3. FASTAPI ENDPOINTS
 # ==========================================
 class WorkerControlReq(BaseModel):
-    action: str # start / stop
+    action: str 
 
 class DataSourceReq(BaseModel):
+    tenant_id: str
     source: str
+    broker_url: str = None  # URL kết nối Messaging
+    topic_name: str = None  # Topic/Queue riêng của Tenant
 
 class ScheduleReq(BaseModel):
     mode: str
@@ -89,13 +92,17 @@ def validate_token():
 
 @app.post("/api/tenant/datasource")
 def config_datasource(req: DataSourceReq):
+    if req.source.lower() == 'vietful':
+        # (Mock) Khởi tạo Connector dựa trên cấu hình messaging riêng của Tenant
+        connector = VietfulConnector(req.broker_url, req.topic_name)
+        return {"status": "success", "message": f"Configured Vietful Messaging for {req.tenant_id} on topic '{req.topic_name}'"}
+    
     return {"status": "success", "message": f"Configured data source: {req.source}"}
 
 @app.post("/api/tenant/schedule")
 def schedule_worker(req: ScheduleReq):
     return {"status": "success", "message": f"Worker scheduled with mode: {req.mode}"}
 
-# --- Quản lý Worker Lifecycle (Start/Stop & Checkpoints) ---
 @app.post("/api/worker/control")
 def control_worker(req: WorkerControlReq):
     conn = psycopg2.connect(**DB_CONFIG)
@@ -113,7 +120,6 @@ def control_worker(req: WorkerControlReq):
         cursor.close()
         conn.close()
 
-# --- Trạng thái Worker (Biết chính xác số lượng active) ---
 @app.get("/api/worker/status")
 def get_worker_status():
     conn = psycopg2.connect(**DB_CONFIG)
@@ -126,7 +132,6 @@ def get_worker_status():
         cursor.close()
         conn.close()
 
-# --- Telemetry & Performance Metrics ---
 @app.get("/api/worker/metrics")
 def get_performance_metrics():
     conn = psycopg2.connect(**DB_CONFIG)
@@ -143,17 +148,15 @@ def get_performance_metrics():
         cursor.close()
         conn.close()
 
-# --- Xử lý nguồn 1: Vietful (Push / Webhook) ---
+# --- Xử lý nguồn 1: Vietful (Push / Webhook endpoint cho Messaging System) ---
 @app.post("/api/sync/vietful")
 def vietful_push_sync(payload: VietfulPayload):
     start_time = time.time()
     conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
     try:
-        # Lưu qua bộ lọc chống trùng lặp và phân tách bảng tenant[cite: 17]
         save_with_deduplication(payload.tenant_id, payload.item_code, payload.item_name, payload.quantity)
         
-        # Ghi nhận Metrics và Checkpoint[cite: 15]
         latency = int((time.time() - start_time) * 1000)
         cursor.execute("INSERT INTO system_performance_metrics (worker_id, latency_ms, throughput, wrong_records) VALUES ('vietful_worker', %s, 1, 0)", (latency,))
         conn.commit()
